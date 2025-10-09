@@ -11,11 +11,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name = "StarterBotTeleopMecanums", group = "StarterBot")
+@TeleOp(name = "Teleop", group = "StarterBot")
 
-public class StarterBotTeleopMecanums extends OpMode {
+public class Teleop extends OpMode {
     final double LAUNCHER_TARGET_VELOCITY = 1000;
     final double FULL_SPEED_SERVO = 1.0;
+    final double FEED_TIME_SECONDS = 0.8;
+    ElapsedTime feederTimer = new ElapsedTime();
 
     private DcMotor leftFrontDrive = null;
     private DcMotor rightFrontDrive = null;
@@ -30,6 +32,7 @@ public class StarterBotTeleopMecanums extends OpMode {
         REQUESTED,
         READY,
     }
+    LaunchState launchState;
 
     public void init() {
         
@@ -66,8 +69,8 @@ public class StarterBotTeleopMecanums extends OpMode {
     public void loop() {
         mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-        if gamepad1.rightBumperWasPressed() && launchState = launchState.IDLE {
-            launchState = launchState.REQUESTED
+        if (gamepad1.rightBumperWasPressed() && launchState == launchState.IDLE) {
+            launchState = launchState.REQUESTED;
         }
 
         launch_logic();
@@ -75,7 +78,7 @@ public class StarterBotTeleopMecanums extends OpMode {
     }
 
     public void launch_logic() {
-        if launchState = launchState.REQUESTED {
+        if (launchState == launchState.REQUESTED) {
             launcher.setVelocity(-1010);
             if (launcher.getVelocity() < -1000) {
                 launchState = LaunchState.READY;
@@ -84,7 +87,7 @@ public class StarterBotTeleopMecanums extends OpMode {
                 feederTimer.reset();
                 }
             }
-        else if launchState = launchState.READY {
+        else if (launchState == launchState.READY) {
             if (feederTimer.seconds() > FEED_TIME_SECONDS) {
                 launchState = LaunchState.IDLE;
                 leftFeeder.setPower(0.0);
@@ -94,6 +97,10 @@ public class StarterBotTeleopMecanums extends OpMode {
         
     }
 
+    double leftFrontPower;        
+    double rightFrontPower;
+    double leftBackPower;
+    double rightBackPower;
     void mecanumDrive(double forward, double strafe, double rotate) {
 
         /* the denominator is the largest motor power (absolute value) or 1
