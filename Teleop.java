@@ -45,9 +45,9 @@ public class Teleop extends OpMode {
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -60,7 +60,7 @@ public class Teleop extends OpMode {
         leftFeeder.setPower(0.0);
         rightFeeder.setPower(0.0);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
+        //launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
         rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
