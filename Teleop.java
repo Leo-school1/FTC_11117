@@ -19,10 +19,10 @@ public class Teleop extends OpMode {
     final double FEED_TIME_SECONDS = 0.8;
     ElapsedTime feederTimer = new ElapsedTime();
 
-    private DcMotor leftFrontDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightBackDrive = null;
+    private DcMotorEx leftFrontDrive = null;
+    private DcMotorEx rightFrontDrive = null;
+    private DcMotorEx leftBackDrive = null;
+    private DcMotorEx rightBackDrive = null;
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
@@ -36,10 +36,10 @@ public class Teleop extends OpMode {
 
     public void init() {
         
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        leftFrontDrive = hardwareMap.get(DcMotorEx.class, "left_front_drive");
+        rightFrontDrive = hardwareMap.get(DcMotorEx.class, "right_front_drive");
+        leftBackDrive = hardwareMap.get(DcMotorEx.class, "left_back_drive");
+        rightBackDrive = hardwareMap.get(DcMotorEx.class, "right_back_drive");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
