@@ -24,6 +24,7 @@ public class Teleop extends OpMode {
     private DcMotorEx leftBackDrive = null;
     private DcMotorEx rightBackDrive = null;
     private DcMotorEx launcher = null;
+    private DcMotorEx intakeMotor = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
 
@@ -40,22 +41,23 @@ public class Teleop extends OpMode {
         rightFrontDrive = hardwareMap.get(DcMotorEx.class, "right_front_drive");
         leftBackDrive = hardwareMap.get(DcMotorEx.class, "left_back_drive");
         rightBackDrive = hardwareMap.get(DcMotorEx.class, "right_back_drive");
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        //launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intake_motor");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftFrontDrive.setZeroPowerBehavior(BRAKE);
         rightFrontDrive.setZeroPowerBehavior(BRAKE);
         leftBackDrive.setZeroPowerBehavior(BRAKE);
         rightBackDrive.setZeroPowerBehavior(BRAKE);
-        launcher.setZeroPowerBehavior(BRAKE);
+        //launcher.setZeroPowerBehavior(BRAKE);
 
         leftFeeder.setPower(0.0);
         rightFeeder.setPower(0.0);
@@ -72,12 +74,18 @@ public class Teleop extends OpMode {
         if (gamepad1.rightBumperWasPressed() && launchState == launchState.IDLE) {
             launchState = launchState.REQUESTED;
         }
+        if (gamepad1.x) {
+            intakeMotor.setPower(1.0);
+        }
+        else {
+            intakeMotor.setPower(0.0);
+        }
 
-        launch_logic();
+        //launch_logic(); 
 
     }
 
-    public void launch_logic() {
+    /*public void launch_logic() {
         if (launchState == launchState.REQUESTED) {
             launcher.setVelocity(-1010);
             if (launcher.getVelocity() < -1000) {
@@ -87,16 +95,18 @@ public class Teleop extends OpMode {
                 feederTimer.reset();
                 }
             }
+            
         else if (launchState == launchState.READY) {
             if (feederTimer.seconds() > FEED_TIME_SECONDS) {
                 launchState = LaunchState.IDLE;
                 leftFeeder.setPower(0.0);
                 rightFeeder.setPower(0.0);
         }
-    }
+    } 
+    
         
     }
-
+    */
     double leftFrontPower;        
     double rightFrontPower;
     double leftBackPower;
@@ -113,6 +123,8 @@ public class Teleop extends OpMode {
         rightFrontPower = (forward - strafe - rotate) / denominator;
         leftBackPower = (forward - strafe + rotate) / denominator;
         rightBackPower = (forward + strafe - rotate) / denominator;
+        
+        telemetry.addData("Speed", leftFrontPower);
 
         leftFrontDrive.setPower(leftFrontPower);
         rightFrontDrive.setPower(rightFrontPower);

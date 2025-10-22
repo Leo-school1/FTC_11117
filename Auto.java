@@ -73,6 +73,28 @@ public class Auto extends OpMode {
         leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
+    
+    public void right(int ticks) {
+        leftFrontDrive.setTargetPosition(ticks);
+        rightFrontDrive.setTargetPosition(ticks);
+        leftBackDrive.setTargetPosition(ticks);
+        rightBackDrive.setTargetPosition(ticks);
+        
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        
+        leftFrontDrive.setVelocity(VELOCITY);
+        rightFrontDrive.setVelocity(VELOCITY);
+        leftBackDrive.setVelocity(VELOCITY);
+        rightBackDrive.setVelocity(VELOCITY);
+        
+        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
 }
 
 
