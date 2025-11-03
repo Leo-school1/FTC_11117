@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
-
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.VisionPortal;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -18,6 +21,8 @@ public class Teleop extends OpMode {
     final double FULL_SPEED_SERVO = 1.0;
     final double FEED_TIME_SECONDS = 0.8;
     ElapsedTime feederTimer = new ElapsedTime();
+    private AprilTagProcessor tag;
+    private VisionPortal visionPortal;
 
     private DcMotorEx leftFrontDrive = null;
     private DcMotorEx rightFrontDrive = null;
@@ -111,6 +116,7 @@ public class Teleop extends OpMode {
     double rightFrontPower;
     double leftBackPower;
     double rightBackPower;
+    
     void mecanumDrive(double forward, double strafe, double rotate) {
 
         /* the denominator is the largest motor power (absolute value) or 1
@@ -130,6 +136,26 @@ public class Teleop extends OpMode {
         rightFrontDrive.setPower(rightFrontPower);
         leftBackDrive.setPower(leftBackPower);
         rightBackDrive.setPower(rightBackPower);
-
     }
+    void initAprilTag() {
+
+        // Create the AprilTag processor.
+        tag = new AprilTagProcessor.Builder().build();
+
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+
+        // IDK IF THIS IS NECESSARY BUT IT DOESN'T BUILD OTHERWISE
+        //builder.setCameraResolution(new Size(640, 480));
+
+        builder.addProcessor(tag);
+
+        visionPortal = builder.build();
+
+        // Disable or re-enable the aprilTag processor at any time.
+        //visionPortal.setProcessorEnabled(tag, true);
+
+        }   // end method initAprilTag()
 }
