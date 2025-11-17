@@ -21,6 +21,8 @@ public class Teleop extends OpMode {
     final double FULL_SPEED_SERVO = 1.0;
     final double FEED_TIME_SECONDS = 0.8;
     ElapsedTime feederTimer = new ElapsedTime();
+    private boolean outTakeOn = false;
+    private boolean yJustPressed = false;
     private AprilTagProcessor tag;
     private VisionPortal visionPortal;
 
@@ -28,10 +30,15 @@ public class Teleop extends OpMode {
     private DcMotorEx rightFrontDrive = null;
     private DcMotorEx leftBackDrive = null;
     private DcMotorEx rightBackDrive = null;
-    private DcMotorEx launcher = null;
+    private DcMotorEx rightLauncher = null;
+    private DcMotorEx leftLauncher = null;
     private DcMotorEx intakeMotor = null;
+    private DcMotorEx elevator = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
+    
+    private CRServo tempFeeder = null;
+
 
     private enum LaunchState {
         IDLE,
@@ -42,12 +49,16 @@ public class Teleop extends OpMode {
 
     public void init() {
         
+        launchState = launchState.IDLE;
+        
         leftFrontDrive = hardwareMap.get(DcMotorEx.class, "left_front_drive");
         rightFrontDrive = hardwareMap.get(DcMotorEx.class, "right_front_drive");
         leftBackDrive = hardwareMap.get(DcMotorEx.class, "left_back_drive");
         rightBackDrive = hardwareMap.get(DcMotorEx.class, "right_back_drive");
-        //launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        rightLauncher = hardwareMap.get(DcMotorEx.class, "right_launcher");
+        leftLauncher = hardwareMap.get(DcMotorEx.class, "left_launcher");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intake_motor");
+        elevator = hardwareMap.get(DcMotorEx.class, "elevator_motor");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
@@ -55,6 +66,8 @@ public class Teleop extends OpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftLauncher.setDirection(DcMotor.Direction.REVERSE);
+        elevator.setDirection(DcMotor.Direction.FORWARD);
 
         //launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -64,21 +77,20 @@ public class Teleop extends OpMode {
         rightBackDrive.setZeroPowerBehavior(BRAKE);
         //launcher.setZeroPowerBehavior(BRAKE);
 
-        leftFeeder.setPower(0.0);
-        rightFeeder.setPower(0.0);
+
 
         //launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
-        rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
+        //rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
+        
+        //initAprilTag();
 
     }
 
     public void loop() {
-        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        
+        mecanumDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-        if (gamepad1.rightBumperWasPressed() && launchState == launchState.IDLE) {
-            launchState = launchState.REQUESTED;
-        }
         if (gamepad1.x) {
             intakeMotor.setPower(1.0);
         }
@@ -86,32 +98,75 @@ public class Teleop extends OpMode {
             intakeMotor.setPower(0.0);
         }
 
+        
+        if (gamepad1.y && !yJustPressed) {
+            yJustPressed = true;
+        } else {
+            yJustPressed = false;
+        }
+
+        if (yJustPressed) {
+            if (!elevatorOn) {
+                elevatorOn = true;
+                elevator.setPower(1.0);
+            }
+            if (elevatorOn) {
+                elevatorOn = false;
+                elevator.setPower(0.0);
+            }
+        }
+
+        if (gamepad1.a) {
+            elevator.setPower(1.0);
+        }
+        else {
+            elevator.setPower(0.0);
+        }
+         
+
+        
         //launch_logic(); 
+ 
+        telemetry.addData("left_stick_y", gamepad1.left_stick_y);
+        telemetry.addData("left_stick_x", gamepad1.left_stick_x);
+        telemetry.addData("right_stick_x", gamepad1.right_stick_x);
+        telemetry.update();
 
     }
-
-    /*public void launch_logic() {
+    boolean lstate = false;
+    public void launch_logic() {
+        lstate = (launchState == launchState.IDLE);
+        telemetry.addData("data", lstate);
+  
+        telemetry.update();
+        if (launchState == launchState.IDLE && gamepad1.y) {
+            launchState = launchState.REQUESTED;
+            rightLauncher.setVelocity(1010);
+            leftLauncher.setVelocity(1010);
+        }
         if (launchState == launchState.REQUESTED) {
-            launcher.setVelocity(-1010);
-            if (launcher.getVelocity() < -1000) {
+            if (rightLauncher.getVelocity() > 1000 && 
+            leftLauncher.getVelocity() > 1000) {
                 launchState = LaunchState.READY;
-                leftFeeder.setPower(FULL_SPEED_SERVO);
-                rightFeeder.setPower(FULL_SPEED_SERVO);
-                feederTimer.reset();
+                leftFeeder.setPower(-1);
+                rightFeeder.setPower(1);
                 }
             }
             
-        else if (launchState == launchState.READY) {
+        if (launchState == launchState.READY) {
             if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                launchState = LaunchState.IDLE;
+                launchState = launchState.IDLE;
                 leftFeeder.setPower(0.0);
                 rightFeeder.setPower(0.0);
-        }
+                feederTimer.reset();
+
+        } 
+
     } 
     
         
     }
-    */
+    
     double leftFrontPower;        
     double rightFrontPower;
     double leftBackPower;
@@ -119,10 +174,10 @@ public class Teleop extends OpMode {
     
     void mecanumDrive(double forward, double strafe, double rotate) {
 
-        /* the denominator is the largest motor power (absolute value) or 1
-         * This ensures all the powers maintain the same ratio,
-         * but only if at least one is out of the range [-1, 1]
-         */
+          //the denominator is the largest motor power (absolute value) or 1
+          //This ensures all the powers maintain the same ratio,
+          //but only if at least one is out of the range [-1, 1]
+         
         double denominator = Math.max(Math.abs(forward) + Math.abs(strafe) + Math.abs(rotate), 1);
 
         leftFrontPower = (forward + strafe + rotate) / denominator;
@@ -137,7 +192,7 @@ public class Teleop extends OpMode {
         leftBackDrive.setPower(leftBackPower);
         rightBackDrive.setPower(rightBackPower);
     }
-    void initAprilTag() {
+    /*void initAprilTag() {
 
         // Create the AprilTag processor.
         tag = new AprilTagProcessor.Builder().build();
@@ -157,5 +212,5 @@ public class Teleop extends OpMode {
         // Disable or re-enable the aprilTag processor at any time.
         //visionPortal.setProcessorEnabled(tag, true);
 
-        }   // end method initAprilTag()
+        }   // end method initAprilTag() */
 }
