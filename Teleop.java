@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -21,8 +22,11 @@ public class Teleop extends OpMode {
     final double FULL_SPEED_SERVO = 1.0;
     final double FEED_TIME_SECONDS = 0.8;
     ElapsedTime feederTimer = new ElapsedTime();
+    private boolean prev_Y = false;
+    private boolean prev_X = false;
     private boolean outTakeOn = false;
-    private boolean yJustPressed = false;
+    private boolean elevatorOn = false;
+
     private AprilTagProcessor tag;
     private VisionPortal visionPortal;
 
@@ -37,7 +41,7 @@ public class Teleop extends OpMode {
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
     
-    private CRServo tempFeeder = null;
+
 
 
     private enum LaunchState {
@@ -66,16 +70,18 @@ public class Teleop extends OpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        rightLauncher.setDirection(DcMotor.Direction.FORWARD);
         leftLauncher.setDirection(DcMotor.Direction.REVERSE);
+
         elevator.setDirection(DcMotor.Direction.FORWARD);
 
-        //launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 
         leftFrontDrive.setZeroPowerBehavior(BRAKE);
         rightFrontDrive.setZeroPowerBehavior(BRAKE);
         leftBackDrive.setZeroPowerBehavior(BRAKE);
         rightBackDrive.setZeroPowerBehavior(BRAKE);
-        //launcher.setZeroPowerBehavior(BRAKE);
 
 
 
@@ -91,32 +97,39 @@ public class Teleop extends OpMode {
         
         mecanumDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-        if (gamepad1.x) {
+        if (gamepad2.a) {
             intakeMotor.setPower(1.0);
         }
         else {
             intakeMotor.setPower(0.0);
         }
 
+        if (gamepad2.b) {
+            rightFeeder.setPower(1.0); 
+            leftFeeder.setPower(-1.0);
+        }
+        else {
+            rightFeeder.setPower(0.0); 
+            leftFeeder.setPower(0.0);
+        }
+
         
-        if (gamepad1.y && !yJustPressed) {
-            yJustPressed = true;
-        } else {
-            yJustPressed = false;
+        if (gamepad2.y && prev_Y) {
+            outTakeOn = !outTakeOn;
+        }
+        if (outTakeOn) {
+            rightLauncher.setPower(1.0);
+            leftLauncher.setPower(1.0);
+        }
+        else {
+            rightLauncher.setPower(0.0);
+            leftLauncher.setPower(0.0);
         }
 
-        if (yJustPressed) {
-            if (!elevatorOn) {
-                elevatorOn = true;
-                elevator.setPower(1.0);
-            }
-            if (elevatorOn) {
-                elevatorOn = false;
-                elevator.setPower(0.0);
-            }
+        if (gamepad2.x && !prev_X) {
+            elevatorOn = !elevatorOn;
         }
-
-        if (gamepad1.a) {
+        if (elevatorOn) {
             elevator.setPower(1.0);
         }
         else {
@@ -127,17 +140,25 @@ public class Teleop extends OpMode {
         
         //launch_logic(); 
  
+        prev_X = gamepad2.x;
+        prev_Y = gamepad2.y;
+
+        telemetry.addLine("Velocities:");
+        telemetry.addLine(String.format("LF: %.2f, RF: %.2f, LB: %.2f, RB: %.2f",
+            leftFrontDrive.getVelocity(),
+            rightFrontDrive.getVelocity(),
+            leftBackDrive.getVelocity(),
+            rightBackDrive.getVelocity()
+        ));
+
         telemetry.addData("left_stick_y", gamepad1.left_stick_y);
         telemetry.addData("left_stick_x", gamepad1.left_stick_x);
         telemetry.addData("right_stick_x", gamepad1.right_stick_x);
         telemetry.update();
 
     }
-    boolean lstate = false;
     public void launch_logic() {
-        lstate = (launchState == launchState.IDLE);
-        telemetry.addData("data", lstate);
-  
+
         telemetry.update();
         if (launchState == launchState.IDLE && gamepad1.y) {
             launchState = launchState.REQUESTED;
@@ -202,7 +223,7 @@ public class Teleop extends OpMode {
         
         builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
 
-        // IDK IF THIS IS NECESSARY BUT IT DOESN'T BUILD OTHERWISE
+        // IDK IF THIS IS NECESSARY BUT IT DOESN'T BUILD WITH THIS
         //builder.setCameraResolution(new Size(640, 480));
 
         builder.addProcessor(tag);
